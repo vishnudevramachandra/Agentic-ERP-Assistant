@@ -31,31 +31,18 @@ The objective is to demonstrate how AI agents can become reliable interfaces for
 ## Architecture
 
 ```
-                    User Request
-                          │
-                          ▼
-                 Claude (Tool Use)
-                          │
-      ┌───────────────────┼────────────────────┐
-      │                   │                    │
- list_tables()     describe_table()     get_enums()
-      │                   │                    │
-      └───────────────┬────┴────────────────────┘
-                      │
-             SQL Generation & Reasoning
-                      │
-          ┌───────────┴─────────────┐
-          │                         │
-     run_select()             run_write()
-          │                         │
-          │                  Dry Run (Rollback)
-          │                         │
-          │                 User Confirmation
-          │                         │
-          └──────────────► Commit ◄─┘
+                Business User
                       │
                       ▼
-             PostgreSQL ERP Database
+              AI-powered ERP Agent
+                      │
+        ┌─────────────┴─────────────┐
+        │                           │
+ Business Reasoning          Controlled Actions
+        │                           │
+        ▼                           ▼
+     ERP Data  ◄──────────────►  ERP Processes
+     (PostgreSQL)
 ```
 
 The language model never communicates with PostgreSQL directly.
