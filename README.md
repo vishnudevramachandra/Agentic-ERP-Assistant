@@ -30,20 +30,7 @@ The objective is to demonstrate how AI agents can become reliable interfaces for
 
 ## Architecture
 
-```
-                Business User
-                      │
-                      ▼
-              AI-powered ERP Agent
-                      │
-        ┌─────────────┴─────────────┐
-        │                           │
- Business Reasoning          Controlled Actions
-        │                           │
-        ▼                           ▼
-     ERP Data  ◄──────────────►  ERP Processes
-     (PostgreSQL)
-```
+<img src="docs/architecture.svg" width="450"/>
 
 The language model never communicates with PostgreSQL directly.
 
@@ -165,50 +152,6 @@ Write operations require confirmation before changes are committed.
 * Python
 * Anthropic Claude (Tool Use API)
 * PostgreSQL
-* psycopg2
-* dotenv
-
----
-
-## Running the Project
-
-### Requirements
-
-```bash
-pip install anthropic psycopg2-binary python-dotenv
-```
-
-Create a PostgreSQL database:
-
-```bash
-createdb abd_erp
-```
-
-Load the schema and seed data:
-
-```bash
-psql abd_erp < schema.sql
-psql abd_erp < seed.sql
-```
-
-Create a `.env` file:
-
-```text
-ANTHROPIC_API_KEY=your_api_key
-DB_DSN=postgresql://localhost/abd_erp
-```
-
-Start the interactive assistant:
-
-```bash
-python sql_agent.py
-```
-
-or run the predefined demonstrations:
-
-```bash
-python sql_agent.py --demo
-```
 
 ---
 
