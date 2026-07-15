@@ -1,30 +1,27 @@
 # Agentic ERP Assistant
 
-*A proof of concept for enterprise ERP automation using Claude tool use and PostgreSQL.*
+*An AI agent that interacts with an ERP system through structured tools and transactional database operations.*
 
 ## Overview
 
-This project explores how a large language model can function as an **AI agent** for interacting with an ERP system through structured tools instead of directly generating SQL or relying on UI automation.
+This project explores how a Large Language Model can function as an **ERP assistant** by reasoning over a database schema, generating SQL dynamically, and interacting with PostgreSQL exclusively through controlled tools.
 
-The prototype simulates an ERP environment for **ABD Druckluft GmbH**, a German compressed air systems company. The database schema was designed as a realistic approximation of an ERP system based on publicly available information about the company's business processes and services.
+Unlike traditional text-to-SQL systems, the language model never communicates with the database directly. Instead, every database operation is performed through a constrained tool interface that controls how data is read and modified.
 
-Rather than treating the language model as a chatbot, this project investigates how an agent can reason about an unfamiliar database, inspect its structure, safely execute operations, and communicate results in natural language.
+The prototype simulates an ERP system for **ABD Druckluft GmbH**, a German compressed air systems company. The schema was designed as a realistic approximation of an ERP environment based on publicly available information about the company's business.
 
 ---
 
-## Motivation
+## Features
 
-Large Language Models have become increasingly capable of understanding business processes and natural language. However, enterprise software requires more than conversational ability:
-
-* data integrity
-* transactional safety
-* schema awareness
-* explainability
-* controlled execution of write operations
-
-Instead of allowing the model to freely generate SQL, this project explores an **agentic workflow** in which the model interacts with the database exclusively through well-defined tools.
-
-The objective is to demonstrate how AI agents can become reliable interfaces for ERP systems while maintaining the safeguards expected in enterprise software.
+* Natural language interface for ERP data
+* Dynamic database schema discovery
+* Automatic SQL generation
+* Tool-based reasoning
+* Safe transactional write operations
+* Human approval before database commits
+* PostgreSQL backend
+* Anthropic Claude Tool Use API
 
 ---
 
@@ -32,20 +29,55 @@ The objective is to demonstrate how AI agents can become reliable interfaces for
 
 <img src="docs/architecture.svg" width="450"/>
 
-The language model never communicates with PostgreSQL directly.
+The language model never communicates with PostgreSQL directly. Every interaction passes through dedicated Python tools that control schema inspection, SQL execution, transaction handling, and user approval.
 
-Instead, it operates through a constrained set of tools that expose only the functionality required to inspect the schema and perform database operations safely.
+---
+
+# Demo
+
+## Reading ERP data
+
+The agent can inspect an unfamiliar schema, generate SQL dynamically, execute it, and explain the results in natural language.
+
+<img src="docs/demo1.gif" alt="Demo1" width="900">
+
+---
+
+## Multi-step reasoning
+
+Rather than relying on hardcoded SQL, the agent first discovers the relevant schema before generating a query.
+
+<img src="docs/demo2.gif" alt="Demo2" width="900">
+
+---
+
+## Safe database modifications
+
+Write operations are executed inside a PostgreSQL transaction.
+
+The execution tool—not the language model—controls whether the transaction is committed.
+
+Before any database change becomes permanent, the tool presents the affected rows and asks the user for approval.
+
+<img src="docs/demo3.gif" alt="Demo3" width="900">
+
+---
+
+## 🚀 Live Demo
+
+**Try it yourself:** [vramachandra.ddns.net/abderp](https://vramachandra.ddns.net/abderp)
+for login enter: abdERP26*#?
 
 ---
 
 ## ERP Modules
 
-The prototype database contains representative ERP modules, including:
+The prototype database contains representative ERP modules including:
 
 * Customer Relationship Management (CRM)
 * Products & Inventory
-* Service Orders
 * Projects
+* Service Orders
 * Rentals
 * Purchasing
 * Invoicing
@@ -53,139 +85,59 @@ The prototype database contains representative ERP modules, including:
 * Support Tickets
 * Document Management
 
-The schema is intentionally broad enough to require the agent to reason across multiple business domains instead of answering isolated SQL questions.
+The schema is intentionally broad enough that the agent must reason across multiple business domains instead of relying on hardcoded queries.
 
 ---
 
-## Agent Workflow
+## Design Principles
 
-### Read Operations
-
-For information requests, the agent follows these steps:
-
-1. Discover available tables.
-2. Inspect the required schema.
-3. Generate an appropriate SQL query.
-4. Execute the query.
-5. Explain the results in natural language.
-
-Because the agent reasons over the schema instead of relying on hardcoded knowledge, it can adapt to previously unseen database structures.
-
----
-
-### Write Operations
-
-For INSERT, UPDATE, and DELETE operations, the workflow is intentionally more conservative.
-
-The agent:
-
-1. inspects the schema,
-2. retrieves PostgreSQL enum values when required,
-3. performs a **dry run** inside a transaction,
-4. rolls the transaction back,
-5. presents the expected result,
-6. commits only after explicit user confirmation.
-
-This approach reduces the risk of accidental modifications while preserving a natural conversational interface.
-
----
-
-## Design Decisions
-
-### Tool-Based Reasoning
-
-Instead of directly asking the language model to produce SQL, the agent first gathers information about the database through dedicated tools.
-
-This mirrors how a human developer would approach an unfamiliar ERP system by inspecting its schema before writing queries.
-
----
-
-### Read and Write Separation
-
-Read-only queries and modifying queries are handled by separate tools.
-
-This allows different validation rules and makes it significantly harder for unintended write operations to occur.
-
----
-
-### Dry-Run Before Commit
-
-Every write operation is executed inside a transaction that is rolled back unless explicitly confirmed by the user.
-
-This creates a verification step before any persistent change is made and provides an additional safety layer for enterprise environments.
-
----
-
-### Schema Awareness
-
-The agent does not assume prior knowledge of the database.
-
-Instead, it dynamically discovers:
-
-* available tables
-* column definitions
-* foreign key relationships
-* PostgreSQL enum values
-
-This makes the approach significantly more flexible than prompt-engineered SQL generation alone.
-
----
-
-## Example Questions
-
-The agent can answer questions such as:
-
-* Which service orders are currently overdue?
-* How much revenue has been invoiced in 2025?
-* Which customers require maintenance?
-* How many hours has an employee logged this year?
-* Create a new customer record.
-* Update an existing project.
-* Insert a purchase order.
-
-Write operations require confirmation before changes are committed.
+* **Tool-based reasoning** — The language model never accesses PostgreSQL directly.
+* **Schema discovery** — Tables, columns and relationships are inspected dynamically before generating SQL.
+* **Transactional writes** — Database modifications execute inside a PostgreSQL transaction.
+* **Human approval** — The execution tool—not the language model—controls whether a transaction is committed.
 
 ---
 
 ## Technology Stack
 
 * Python
-* Anthropic Claude (Tool Use API)
 * PostgreSQL
+* Anthropic Claude (Tool Use API)
 
 ---
 
 ## Current Limitations
 
-This project is intended as an architectural proof of concept rather than a production-ready ERP assistant.
+This project is an architectural proof of concept rather than a production-ready ERP assistant.
 
 Current limitations include:
 
-* direct PostgreSQL access instead of ERP APIs
-* no authentication or role-based permissions
-* single-agent architecture
-* no retrieval over external documentation
-* limited error recovery
-* no long-term memory or planning across sessions
+* Direct PostgreSQL access instead of ERP APIs
+* No authentication or role-based permissions
+* Single-agent architecture
+* No retrieval over external documentation
+* No persistent conversational memory
+* Limited error recovery
 
 ---
 
 ## Future Work
 
-Potential extensions include:
+Potential future extensions include:
 
-* replacing direct database access with ERP REST APIs
-* integration with SAP, Microsoft Dynamics, or Odoo
-* multi-agent orchestration for complex workflows
+* Integration with SAP, Microsoft Dynamics, or Odoo
+* ERP REST API integration
+* Multi-agent orchestration
 * Retrieval-Augmented Generation (RAG) over ERP documentation
-* approval workflows for business-critical operations
-* audit logging and role-aware permissions
-* autonomous planning across multiple business processes
+* Role-aware permissions
+* Audit logging
+* Approval workflows
+* Long-term planning across business processes
 
 ---
 
 ## Purpose
 
-The purpose of this project is to explore how **agentic AI systems** can interact safely with enterprise software.
+This project explores how **agentic AI systems** can interact safely with enterprise software.
 
-Rather than demonstrating text-to-SQL generation, the project focuses on **tool-based reasoning**, **controlled execution**, and **enterprise-oriented safety mechanisms** that could form the foundation of future AI assistants for ERP systems.
+The focus is not text-to-SQL generation, but the design of an AI agent that reasons through structured tools while keeping database execution and transaction control outside the language model.
